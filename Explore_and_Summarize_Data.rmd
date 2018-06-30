@@ -1,0 +1,617 @@
+Explore and Summarize Data by Ashish
+========================================================
+## Dataset Overview:
+
+This tidy data set contains 1,599 red wines with 13 variables on the chemical 
+properties of the wine. At least 3 wine experts rated the quality of each wine, 
+providing a rating between 0 (very bad) and 10 (very excellent).
+
+### My Point Of View of Analysis:
+
+Which chemical properties influence the quality of red wines?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+library(ggplot2)
+library(reshape2)
+library(purrr)
+library(tidyr)
+library(GGally)
+library(gridExtra)
+```
+
+```{r echo=FALSE, Load_the_Data}
+# Load the Data
+red_wine <- read.csv('wineQualityReds.csv', sep = ',')
+```
+
+# Univariate Plots Section:
+
+All the Variables in a glance,
+
+```{r echo=FALSE, all_variables}
+names(red_wine)
+```
+
+### Size of the dataset:
+
+```{r echo=FALSE, Size}
+str(red_wine)
+```
+
+This dataset(red_wine) tells us about the quality of Red Wine having 1599 
+observations of 13 variables.
+
+```{r echo=FALSE, Summary}
+summary(red_wine)
+```
+
+'quality' variable is discreet and other variables are continuous in the dataset.
+'X' looks like some unique number.
+'residual.sugar', 'chlorides', 'sulfur.dioxide' are having outliers.
+
+```{r echo=FALSE, delete_X_Variable}
+red_wine$X <- NULL
+```
+
+Removed 'X' from dataframe as it was just a serial number.
+
+### Histogram of all the variables,
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, All_Variables_Plot}
+ggplot(data = melt(red_wine), mapping = aes(x = value)) + 
+    geom_histogram(bins = 40) + facet_wrap(~variable, scales = 'free_x')
+```
+
+### Quality
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, Quality_1}
+ggplot(aes(x = factor(quality)), data = red_wine) +
+  geom_bar() + xlab('Quality')
+```
+```{r echo=FALSE, Quality_2}
+summary(red_wine$quality)
+```
+
+It's a Normal Distribution.
+Dataset is largely concentrated around 5 & 6.
+
+### Fixed Acidity
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, fixed.acidity_1}
+ggplot(aes(x = fixed.acidity), data = red_wine) +
+  geom_histogram() +
+  scale_x_continuous(limits = c(4, 15.90), breaks = seq(4, 15.90, 1)) +
+  xlab('Fixed Acidity')
+```
+
+
+```{r echo=FALSE, fixed.acidity_2}
+summary(red_wine$fixed.acidity)
+```
+
+It's a Right-Skewed Distribution.
+Dataset is largely concentrated around 7 & 8.
+There are some outliers also.
+
+### Volatile Acidity
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, volatile.acidity_1}
+ggplot(aes(x = volatile.acidity), data = red_wine) +
+  geom_histogram() +
+  scale_x_continuous(limits = c(0.1, 1.58), breaks = seq(0.1, 1.58, 0.1)) +
+  xlab('Volatile Acidity')
+```
+```{r echo=FALSE, volatile.acidity_2}
+summary(red_wine$volatile.acidity)
+```
+
+Cannot figure out distribution whether it's Bimodal or Normal.
+
+### Citric Acid
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, citric.acid_1}
+ggplot(aes(x = citric.acid), data = red_wine) +
+  geom_histogram() +
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1)) +
+  xlab('Citric Acid')
+```
+
+```{r echo=FALSE, citric.acid_2}
+summary(red_wine$citric.acid)
+```
+
+Distribution of 'Citric Acid' is not Normal.
+
+### Residual Sugar
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, residual.sugar_1}
+ggplot(aes(x = residual.sugar), data = red_wine) +
+  geom_histogram() +
+  scale_x_continuous(limits = c(0, 15), breaks = seq(0, 15, 1)) +
+  xlab('Residual Sugar')
+```
+
+
+```{r echo=FALSE, residual.sugar_2}
+summary(red_wine$residual.sugar)
+```
+
+log10 Distribution:
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, residual.sugar_3}
+ggplot(aes(x = residual.sugar), data = red_wine) +
+  geom_histogram() +
+  xlab('Residual Sugar') +
+  scale_x_log10(breaks = seq(0, 15, 1))
+```
+
+Distribution is Right Skewed.
+There were some outliers.
+
+### Chlorides
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, chlorides_1}
+ggplot(aes(x = chlorides), data = red_wine) +
+  geom_histogram() +
+  scale_x_continuous() +
+  xlab('Chlorides')
+```
+
+```{r echo=FALSE, chlorides_2}
+summary(red_wine$chlorides)
+```
+
+log10 Distribution:
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, chlorides_3}
+ggplot(aes(x = chlorides), data = red_wine) +
+  geom_histogram() +
+  scale_x_log10(breaks = seq(0, 1, 0.1)) +
+  xlab('log10 Chlorides')
+```
+
+Its a Normal Distribution.
+
+### free.sulfur.dioxide
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, free.sulfur.dioxide_1}
+ggplot(aes(x = free.sulfur.dioxide), data = red_wine) +
+  geom_histogram() +
+  scale_x_continuous() +
+  xlab('Free Sulfur Dioxide')
+```
+```{r echo=FALSE, free.sulfur.dioxide_2}
+summary(red_wine$free.sulfur.dioxide)
+```
+
+log10 Distribution:
+
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, free.sulfur.dioxide_3}
+ggplot(aes(x = free.sulfur.dioxide), data = red_wine) +
+  geom_histogram() +
+  scale_x_log10(breaks = seq(0, 72, 10)) +
+  xlab('log10 Free Sulfur Dioxide')
+```
+
+It's not Normal.
+
+### Total Sulfur Dioxide
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, total.sulfur.dioxide_1}
+ggplot(aes(x = total.sulfur.dioxide), data = red_wine) +
+  geom_histogram() +
+  scale_x_continuous() +
+  xlab('Total Sulfur Dioxide')
+```
+
+```{r echo=FALSE, total.sulfur.dioxide_2}
+summary(red_wine$total.sulfur.dioxide)
+```
+
+log10 Distribution:
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, total.sulfur.dioxide_3}
+ggplot(aes(x = total.sulfur.dioxide), data = red_wine) +
+  geom_histogram() +
+  scale_x_log10(breaks = seq(6, 289, 40)) +
+  xlab('log10 Total Sulfur Dioxide')
+```
+
+It is a Normal Distribution curve.
+
+### density
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, density_1}
+ggplot(aes(x = density), data = red_wine) +
+  geom_histogram() +
+  scale_x_continuous() +
+  xlab('Density')
+```
+```{r echo=FALSE, density_2}
+summary(red_wine$density)
+```
+
+It is a Normal Distribution curve.
+
+### pH
+```{r echo=FALSE,message=FALSE, warning=FALSE, pH_1}
+ggplot(aes(x = pH), data = red_wine) +
+  geom_histogram() +
+  scale_x_continuous() +
+  xlab('pH')
+```
+```{r echo=FALSE, pH_2}
+summary(red_wine$pH)
+```
+
+It is a Normal Distribution curve.
+
+### Sulphates
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, sulphates_1}
+ggplot(aes(x = sulphates), data = red_wine) +
+  geom_histogram() +
+  scale_x_continuous() +
+  xlab('Sulphates')
+```
+
+
+```{r echo=FALSE, sulphates_2}
+summary(red_wine$sulphates)
+```
+
+log10 Distribution:
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, sulphates_3}
+ggplot(aes(x = sulphates), data = red_wine) +
+  geom_histogram() +
+  scale_x_log10(breaks = seq(0, 2, 0.1)) +
+  xlab('log10 Sulphates')
+```
+
+It is a Normal Distribution curve.
+
+### alcohol
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, alcohol_1}
+ggplot(aes(x = alcohol), data = red_wine) +
+  geom_histogram() +
+  scale_x_continuous() +
+  xlab('Alcohol')
+```
+```{r echo=FALSE, alcohol_2}
+summary(red_wine$alcohol)
+```
+
+It's a left-skewed distribution.
+
+### Creating new variable 'quality.rating':
+
+```{r echo=FALSE, quality.rating}
+red_wine$quality.rating <- ifelse(red_wine$quality < 5, 'Bad', 
+                        ifelse(red_wine$quality < 7, 'Average', 'Excellent'))
+red_wine$quality.rating <- ordered(red_wine$quality.rating, levels = 
+                                     c('Bad', 'Average', 'Excellent'))
+```
+
+### Quality Rating:
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, quality.rating_1}
+ggplot(aes(x = quality.rating), data = red_wine) +
+  geom_bar() +
+  xlab('Quality Rating')
+```
+
+```{r echo=FALSE, quality.rating_2}
+summary(red_wine$quality.rating)
+```
+
+# Univariate Analysis:
+
+### What is the structure of your dataset?
+
+There were 1599 obs. of  13 variables.
+
+### What is/are the main feature(s) of interest in your dataset?
+
+The main interest was 'quality' as it is the key factor of wine's taste.
+
+### What other features in the dataset do you think will help support your
+### investigation into your feature(s) of interest?
+
+'alcohol' & 'pH' will also play a important ingredient for wines taste.
+
+### Did you create any new variables from existing variables in the dataset?
+
+'quality.rating' was created to show the ratings of the quality.
+
+### Of the features you investigated, were there any unusual distributions?
+### Did you perform any operations on the data to tidy, adjust, or change the 
+### form of the data? If so, why did you do this?
+
+I removed variable 'X' from dataset as it was of no use.
+
+There were many outliers(can be seen above in Box Plots & Histograms). 
+To know the actual distribution many variables were log transformed.
+
+# Bivariate Plots Section:
+
+Through 'GGally' package we can see the correlation between the variables:
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, Bivariate_Plots}
+ggcorr(red_wine, label = TRUE, 
+       label_alpha = TRUE, legend.size = 12, label_size = 4, size = 4, 
+       hjust = 0.85, layout.exp = 2)
+```
+
+Variable's with strong Positive Correlation:
+
+ * alcohol & quality
+ * free sulfur dioxide & total sulfur dioxide
+ * density & fixed acidity
+ * citric acid & fixed acidity
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, Positive_Correlation}
+p1 <- ggplot(aes(x = alcohol, y = quality), data = red_wine) +
+  geom_smooth(method = 'lm', color = 'Red') + geom_jitter(alpha = (1/10))
+
+p2 <- ggplot(aes(x = free.sulfur.dioxide, y = total.sulfur.dioxide), 
+      data = red_wine) +
+  geom_smooth(method = 'lm', color = 'Red') + geom_jitter(alpha = (1/10))
+
+p3 <- ggplot(aes(x = density, y = fixed.acidity), data = red_wine) +
+  geom_smooth(method = 'lm', color = 'Red') + geom_jitter(alpha = (1/10))
+
+p4 <- ggplot(aes(x = fixed.acidity, y = citric.acid), data = red_wine) +
+  geom_smooth(method = 'lm', color = 'Red') + geom_jitter(alpha = (1/10))
+
+library(gridExtra)
+
+grid.arrange(p1, p2, p3, p4, ncol = 2)
+  
+```
+
+Variable's with strong Negative Correlation:
+
+ * density & alcohol
+ * pH & citric acid
+ * volatile acidity & fixed acidity
+ * pH & fixed acidity
+ * volatile acidity & citric acid
+ 
+```{r echo=FALSE,message=FALSE, warning=FALSE, Negative_Correlation}
+q1 <- ggplot(aes(x = alcohol, y = density), data = red_wine) +
+  geom_smooth(method = 'lm', color = 'Red') + geom_jitter(alpha = (1/10))
+
+q2 <- ggplot(aes(x = pH, y = citric.acid), data = red_wine) +
+  geom_smooth(method = 'lm', color = 'Red') + geom_jitter(alpha = (1/10))
+
+q3 <- ggplot(aes(x = volatile.acidity, y = fixed.acidity), data = red_wine) +
+  geom_smooth(method = 'lm', color = 'Red') + geom_jitter(alpha = (1/10))
+
+q4 <- ggplot(aes(x = pH, y = fixed.acidity), data = red_wine) +
+  geom_smooth(method = 'lm', color = 'Red') + geom_jitter(alpha = (1/10))
+
+q5 <- ggplot(aes(x = volatile.acidity, y = citric.acid), data = red_wine) +
+  geom_smooth(method = 'lm', color = 'Red') + geom_jitter(alpha = (1/10))
+
+library(gridExtra)
+
+grid.arrange(q1, q2, q3, q4, q5, ncol = 2)
+  
+```
+
+Same thing can be visualised from the above graphs.
+
+Now, we will compare our main intrest i.e 'quality.rating' with alcohol,
+
+```{r echo=FALSE, Factor_quality.rating}
+red_wine$quality.rating <- factor(red_wine$quality.rating,
+                                  labels = c('Bad', 'Average', 'Excellent'))
+```
+
+```{r echo=FALSE, Factor_quality}
+red_wine$quality <- factor(red_wine$quality,
+                                  labels = c('3', '4', '5', '6', '7', '8'))
+```
+
+
+```{r echo=FALSE, quality.rating_alcohol}
+ggplot(aes(x = quality.rating, y = alcohol), data = red_wine) +
+  geom_boxplot(fill = "gold1", colour = "Red") + 
+  ggtitle("Quality Rating Vs Alcohol") + geom_jitter(alpha = (1/10))
+```
+  
+```{r echo=FALSE, quality_alcohol}
+ggplot(aes(x = quality, y = alcohol), data = red_wine) +
+  geom_boxplot(fill = "gold1", colour = "Red") + ggtitle("Quality Vs Alcohol") +
+  geom_jitter(alpha = (1/10))
+``` 
+
+As we have seen in above chart quality and alcohol are having a positive
+correlation, which can also be seen from above box plots.
+
+As we can see that 'quality.rating' as Excellent are having alcohol quantity 
+more than 'Bad'   and   'Average'.
+  
+Sample size for 'Average' looks more than other two i.e. 'Excellent' & 'Bad'.
+
+```{r echo=FALSE, quality_volatile.acidity}
+ggplot(aes(x = quality, y = volatile.acidity), data = red_wine) +
+  geom_boxplot(fill = "gold1", colour = "Red") + 
+  ggtitle("Quality Vs Volatile Acidity") + geom_jitter(alpha = (1/10))
+``` 
+
+# Bivariate Analysis:
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. How did the feature(s) of interest vary with other features in \
+the dataset?
+
+Our main intrest was with 'quality', which was having a positive correlation
+with 'alcohol'. The alcohol which was having grade '7' and '8' were having 
+good amount of alcohol.
+  
+Red Wine having less volatile acidity were having good quality.
+
+### Did you observe any interesting relationships between the other features \
+(not the main feature(s) of interest)?
+
+Density is strongly correlated with alcohol (negatively).
+
+### What was the strongest relationship you found?
+
+> Positive:
+
+  * fixed.acidity:citirc.acid = 0.7
+  * fixed.acidity:density = 0.7
+  * free.sulfur.dioxide:total.sulfur.dioxide = 0.7
+  
+> Negative:
+
+  * fixed.acidity:pH = 0.7
+
+# Multivariate Plots Section:
+
+I will be plotting alcohol, density, sulaphates, quality and volatile acidity
+  as they were strongly related with 'quality' of red wine.
+
+```{r echo=FALSE, Multivariate_Plots_1}
+ggplot(aes(x = volatile.acidity , y = sulphates, color = factor(quality)), data = red_wine) +
+  geom_point() + scale_colour_brewer(palette = "RdYlGn")
+```
+
+As we can see from the plot that red wine with quality '8' is around left most
+part of the graph. Through this we can incur that red wine with less volatile
+acidity are good in quality.
+
+```{r echo=FALSE, Multivariate_Plots_2}
+ggplot(aes(x = density , y = sulphates, color = factor(quality)), data = red_wine) +
+  geom_point() + scale_colour_brewer(palette = "RdYlGn")
+```
+
+Same goes with 'density' also. Wines having less density are having good
+quality.
+  
+### Models:
+
+
+```{r echo=FALSE, message=TRUE}
+m1 <- lm(formula = as.numeric(quality) ~ alcohol, data = red_wine)
+summary(m1)
+```
+
+```{r echo=FALSE, message=TRUE}
+m2 <- update(m1, . ~ . + sulphates)
+summary(m2)
+```
+```{r echo=FALSE, message=TRUE}
+m3 <- update(m2, . ~ . + volatile.acidity)
+summary(m3)
+```
+
+# Multivariate Analysis:
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. Were there features that strengthened each other in terms of \
+looking at your feature(s) of interest?
+
+Since 'quality' was highly correlated with density, sulaphates, alcohol and 
+volatile acidity.So I plotted sulaphates, alcohol, volatile acidity and 
+quality (In Multivariate Plot 1). So we can see that with increase in volatile
+acid quality is decreasing.
+  
+In  Multivariate Plot 2,
+I plotted sulaphates, alcohol, density and quality. 
+So here we can see that with increase in density quality is decreasing.
+
+### Were there any interesting or surprising interactions between features?
+
+Here I did not find any thing unusual or interesting may be I dont have domain
+knowledge to check those variables which may impact analysis. It was purely
+based on the correlations.
+
+### OPTIONAL: Did you create any models with your dataset? Discuss the \
+strengths and limitations of your model.
+
+Yes, I created three models. R-squared values were very less for all the three
+models(Higher is better with 1 being the best),which were not as much convincing
+to declare as a linear model for this dataset.
+
+Here p-value indicates there is a significant relationship described by the 
+model because the values are less than 0.05.So we reject the null hypothesis.
+
+------
+
+# Final Plots and Summary
+
+### Plot One
+```{r echo=FALSE,message=FALSE, warning=FALSE, Plot_One_1}
+ggplot(aes(x = factor(quality)), data = red_wine) +
+  geom_bar() + xlab('Quality') + ylab('Number of Red Wines')
+```
+```{r echo=FALSE, message=TRUE}
+summary(red_wine$quality)
+```
+
+### Description One
+
+The distribution of red wine quality appears to be normal. Although the rating
+scale is between 0 and 10, there exists no wine that is rated 1, 2, 9 or 10.
+
+### Plot Two
+
+```{r echo=FALSE, Plot_Two}
+ggplot(aes(x = factor(quality), y = volatile.acidity), data = red_wine) +
+  geom_boxplot(fill = "gold1", colour = "Red") + ggtitle("Quality Vs Volatile Acidity") +
+  geom_jitter(alpha = (1/10)) + ylab("Volatile Acidity (g / dm^3)")
+```
+
+### Description Two
+
+Volatile Acid is not having a very strong correlation with quality. But it was
+significant enough.
+Red Wine having less volatile acidity were having good quality.
+
+### Plot Three
+```{r echo=FALSE, Plot_Three}
+r1 <- ggplot(aes(x = volatile.acidity , y = sulphates, color = factor(quality)), 
+      data = red_wine) + geom_point() + scale_colour_brewer(palette = "RdYlGn")+
+      ggtitle('Relation Between Volatile Acidity, Sulphates, Quality') +
+      xlab("Volatile Acidity (g / dm^3)") + ylab("Sulphates(g / dm3)")
+
+r2 <- ggplot(aes(x = density , y = sulphates, color = factor(quality)),
+      data = red_wine) + geom_point() + scale_colour_brewer(palette = "RdYlGn")+
+      ggtitle('Relation Between Density, Sulphates, Quality') +
+      xlab("Density (g / cm^3)") + ylab("Sulphates(g / dm3)")
+
+library(gridExtra)
+
+grid.arrange(r1, r2, nrow = 2)
+```
+
+### Description Three
+
+'quality' is highly correlated with density, sulaphates, alcohol and volatile
+acidity. With the increase in density and volatile acidity, the quality of
+Red Wine increases.
+
+------
+
+# Reflection
+
+Red Wine data set contains information on 1599 wines across 13 variables.
+Then exploratory data analysis was done in which at first a univariate, then 
+bivariate and finally multivariate examinations were performed to know 
+relations between its features.
+
+And I have the feeling that some interesting relations(Multivariate) may have 
+been left aside among the many permutations of variables in the dataset.
+I think good domain knowledge about red wine would have helped a lot while doing
+analysis of this dataset. As I could have known relation between variables which
+impacts the quality. This would have certainly improve the accuracy of the 
+prediction models.
+
+Another challenge was factoring the quality variable, which was rectified by 
+reviewer how to efficiently with ordinal variables.
